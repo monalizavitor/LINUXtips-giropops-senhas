@@ -4,7 +4,7 @@ Criando uma imagem de container distroless e sem vulnerabilidades para a aplica�
 ## O que é uma imagem distroless?
 Imagens distroless são imagens Docker mínimas, que contêm apenas os componentes essenciais para executar uma aplicação específica. 
 
-## Por que usar imagens Distroless?
+## Por que usar imagens distroless?
 - **Segurança**: Menor superfície de ataque, pois não há componentes extras que possam ser explorados por vulnerabilidades.
 - **Tamanho**: Imagens menores, o que agiliza o processo de build, push e pull.
 - **Performance**: Menor tempo de inicialização e menor consumo de recursos.
