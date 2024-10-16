@@ -28,7 +28,7 @@ O [Docker Scout](https://docs.docker.com/scout/) analisou as duas imagens para c
 
 | Imagem | Imagem base | Vulnerabilidades | Camadas | Tamanho |
 |---|---|---|---|---|
-| [linuxtips-giropops-senhas-distroless:2.0](https://hub.docker.com/layers/dissipar/linuxtips-giropops-senhas-distroless/2.0/images/sha256-8518e704d95214d51bf343b96521b697d741d743c8c9d3922ede9655341d22a9?context=repo) |python:3.9-slim | 6 | 23 | 134 MB |
-| [linuxtips-giropops-senhas:1.0](https://hub.docker.com/layers/dissipar/linuxtips-giropops-senhas/1.0/images/sha256-148def4674fe512a913a2be8602366181bbc36b882a22b66f24f3d4fe771ea15?context=repo) | chainguard/python:latest | 0 | 6 | 72.4 MB |
+| [linuxtips-giropops-senhas:1.0](https://hub.docker.com/layers/dissipar/linuxtips-giropops-senhas/1.0/images/sha256-148def4674fe512a913a2be8602366181bbc36b882a22b66f24f3d4fe771ea15?context=repo) |python:3.9-slim | 6 | 23 | 134 MB |
+| [linuxtips-giropops-senhas-distroless:2.0](https://hub.docker.com/layers/dissipar/linuxtips-giropops-senhas-distroless/2.0/images/sha256-8518e704d95214d51bf343b96521b697d741d743c8c9d3922ede9655341d22a9?context=repo) | chainguard/python:latest | 0 | 6 | 72.4 MB |
 
 Imagem distroless assinada com o [Cosign](https://docs.sigstore.dev).
