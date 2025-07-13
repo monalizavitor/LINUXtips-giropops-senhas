@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: giropops
+  namespace: argocd
+spec:
+  project: default
+  sources:
+  # - repoURL: 'https://github.com/monalizavitor/LINUXtips-giropops-senhas.git'
+    #chart: grafana
+    #targetRevision: 7.0.19
+    # helm:
+    #   valueFiles: 
+    #   - $values/grafana/values.yaml
+  - repoURL: 'https://github.com/monalizavitor/LINUXtips-giropops-senhas.git'
+    targetRevision: feat/cd
+    ref: values
+  destination:
+    namespace: argocd
+    server: 'https://kubernetes.default.svc'
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
