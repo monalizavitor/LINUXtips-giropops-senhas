@@ -13,9 +13,8 @@ spec:
       valueFiles: 
       - values.yaml
     path: helm
-  - repoURL: 'https://github.com/monalizavitor/LINUXtips-giropops-senhas.git'
+    repoURL: 'https://github.com/monalizavitor/LINUXtips-giropops-senhas.git'
     targetRevision: feat/cd
-    ref: helm
   syncPolicy:
     automated:
       selfHeal: true
