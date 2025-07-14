@@ -14,7 +14,7 @@ spec:
     #   - $values/grafana/values.yaml
   - repoURL: 'https://github.com/monalizavitor/LINUXtips-giropops-senhas.git'
     targetRevision: feat/cd
-    ref: values
+    ref: feat/cd
   destination:
     namespace: argocd
     server: 'https://kubernetes.default.svc'
