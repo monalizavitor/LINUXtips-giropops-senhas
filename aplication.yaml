@@ -9,9 +9,6 @@ spec:
     namespace: giropops
     server: 'https://kubernetes.default.svc'
   sources:
-  - repoURL: 'https://github.com/monalizavitor/LINUXtips-giropops-senhas.git'
-    chart: giropops-senhas
-    targetRevision: 1.0.0
     helm:
       valueFiles: 
       - values.yaml
