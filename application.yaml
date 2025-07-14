@@ -8,13 +8,13 @@ spec:
   destination:
     namespace: giropops
     server: 'https://kubernetes.default.svc'
-  sources:
+  source:
     helm:
       valueFiles: 
       - values.yaml
-    path: helm
     repoURL: 'https://github.com/monalizavitor/LINUXtips-giropops-senhas.git'
     targetRevision: feat/cd
+    path: helm
   syncPolicy:
     automated:
       selfHeal: true
