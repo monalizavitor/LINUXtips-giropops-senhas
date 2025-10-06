@@ -1,0 +1,67 @@
+deployments:
+  giropops-senhas:
+    name: giropops-senhas-helm
+    image: linuxtips/giropops-senhas:1.0
+    replicas: 3
+    ports:
+      - port: 5000
+        targetPort: 5000
+        name: app
+        serviceType: NodePort
+        nodePort: 32000
+      - port: 8088
+        targetPort: 8088
+        name: metrics
+        serviceType: ClusterIP
+    labels:
+      app: giropops-senhas
+      environment: development
+    resources: 
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+      requests:
+        memory: "128Mi"
+        cpu: "250m"
+
+  redis:
+    name: redis
+    image: redis
+    replicas: 1
+    containerPort: 6379
+    labels:
+      app: redis
+      environment: development   
+    resources:
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+      requests:
+        memory: "128Mi"
+        cpu: "250m"
+
+services:
+  giropops-senhas:
+    ports:
+      - port: 5000
+        targetPort: 5000
+        name: app
+        serviceType: NodePort
+        nodePort: 32000
+      - port: 8088
+        targetPort: 8088
+        name: metrics
+        serviceType: ClusterIP
+    labels:
+      app: giropops-senhas
+      environment: development
+  redis:
+      ports:
+        - port: 6379
+          targetPort: 6379
+          name: service
+          serviceType: ClusterIP
+      labels:
+        app: redis
+        environment: development
+
