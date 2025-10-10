@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_IMAGE: linuxtips/giropops-senhas
+  DOCKER_IMAGE: dissipar/giropops-senhas
   HELM_CHART_PATH: ./helm
   CLUSTER_NAME: giropops-senhas-cluster
 
