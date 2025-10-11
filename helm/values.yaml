@@ -1,7 +1,7 @@
 deployments:
   giropops-senhas:
     name: giropops-senhas-helm
-    image: linuxtips/giropops-senhas:1.0
+    image: dissipar/giropops-senhas
     replicas: 3
     ports:
       - port: 5000
