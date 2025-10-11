@@ -1,5 +1,5 @@
 deployments:
-  giropops-senhas:
+  giropopsSenhas:
     name: giropops-senhas-helm
     image: dissipar/giropops-senhas
     replicas: 3
