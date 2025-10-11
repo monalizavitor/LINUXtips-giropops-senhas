@@ -27,11 +27,16 @@ jobs:
         with:
           terraform_version: 1.6.0
 
+      - name: Cache Terraform state
+        uses: actions/cache@v3
+        with:
+          path: terraform/terraform.tfstate
+          key: terraform-state-${{ github.ref }}
+          restore-keys: |
+            terraform-state-
+
       - name: Terraform Init
         working-directory: ./terraform
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
         run: terraform init
 
       - name: Terraform Plan
