@@ -30,8 +30,8 @@ jobs:
       - name: Terraform Init
         working-directory: ./terraform
         env:
-          ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY }}
-          SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
         run: terraform init
 
       - name: Terraform Plan
