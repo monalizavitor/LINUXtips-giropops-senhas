@@ -13,7 +13,44 @@ env:
   CLUSTER_NAME: giropops-senhas-cluster
 
 jobs:
+  provision-infrastructure:
+    runs-on: ubuntu-latest
+    outputs:
+      cluster_id: ${{ steps.terraform.outputs.cluster_id }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        env:
+          ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_KEY }}
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        env:
+          TF_VAR_do_token: ${{ secrets.DO_ACCESS_TOKEN }}
+        run: terraform plan
+
+      - name: Terraform Apply
+        id: terraform
+        working-directory: ./terraform
+        env:
+          TF_VAR_do_token: ${{ secrets.DO_ACCESS_TOKEN }}
+        run: |
+          terraform apply -auto-approve
+          echo "cluster_id=$(terraform output -raw cluster_id)" >> $GITHUB_OUTPUT
+
   build-and-push:
+    needs: provision-infrastructure
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.meta.outputs.tags }}
@@ -62,7 +99,7 @@ jobs:
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          token: ${{ secrets.DO_ACCESS_TOKEN }}
 
       - name: Save kubeconfig
         run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER_NAME }}
