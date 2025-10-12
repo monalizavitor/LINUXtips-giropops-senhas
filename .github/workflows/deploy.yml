@@ -79,8 +79,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_IMAGE }}
           tags: |
-            type=sha,prefix=release-,enable=${{ github.ref == 'refs/heads/release' }}
-            type=sha,prefix=main-,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha
+            type=ref,event=branch
 
       - name: Debug metadata outputs
         run: |
