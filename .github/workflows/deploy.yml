@@ -9,7 +9,7 @@ on:
 
 env:
   DOCKER_IMAGE: dissipar/giropops-senhas
-  HELM_CHART_PATH: ./helm
+  HELM_CHART_PATH: ../helm
   CLUSTER_NAME: giropops-senhas-cluster
 
 jobs:
