@@ -135,7 +135,7 @@ jobs:
           IMAGE_TAG=$(echo "${{ needs.build-and-push.outputs.image_tag }}" | head -n1)
           echo "Deploying image: ${IMAGE_TAG}"
           helm upgrade --install giropops-senhas ${{ env.HELM_CHART_PATH }} \
-            --set deployments.giropops-senhas.image="${IMAGE_TAG}" \
+            --set deployments.giropopsSenhas.image="${IMAGE_TAG}" \
             --namespace giropops-senhas \
             --create-namespace \
             --wait \
