@@ -1,5 +1,5 @@
 deployments:
-  giropopsSenhas:
+  giropops-senhas:
     name: giropops-senhas-helm
     image: dissipar/giropops-senhas
     replicas: 3
@@ -14,7 +14,7 @@ deployments:
         name: metrics
         serviceType: ClusterIP
     labels:
-      app: giropopsSenhas
+      app: giropops-senhas
       environment: development
     resources: 
       limits:
