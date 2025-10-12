@@ -84,8 +84,14 @@ jobs:
 
       - name: Debug metadata outputs
         run: |
+          echo "=== Metadata Outputs ==="
           echo "Tags: ${{ steps.meta.outputs.tags }}"
           echo "Version: ${{ steps.meta.outputs.version }}"
+          echo "JSON: ${{ steps.meta.outputs.json }}"
+          echo "=== GitHub Context ==="
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+          echo "Docker Image: ${{ env.DOCKER_IMAGE }}"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
