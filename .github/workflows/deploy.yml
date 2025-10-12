@@ -12,6 +12,7 @@ env:
   HELM_CHART_PATH: ./helm
   CLUSTER_NAME: giropops-senhas-cluster
 
+# teste
 jobs:
   # provision-infrastructure:
   #   runs-on: ubuntu-latest
