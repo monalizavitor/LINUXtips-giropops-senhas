@@ -14,7 +14,7 @@ deployments:
         name: metrics
         serviceType: ClusterIP
     labels:
-      app: giropops-senhas
+      app: giropopsSenhas
       environment: development
     resources: 
       limits:
