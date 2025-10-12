@@ -13,49 +13,48 @@ env:
   CLUSTER_NAME: giropops-senhas-cluster
 
 jobs:
-  provision-infrastructure:
-    runs-on: ubuntu-latest
-    outputs:
-      cluster_id: ${{ steps.terraform.outputs.cluster_id }}
+  # provision-infrastructure:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     cluster_id: ${{ steps.terraform.outputs.cluster_id }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.0
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: 1.6.0
 
-      - name: Cache Terraform state
-        uses: actions/cache@v3
-        with:
-          path: terraform/terraform.tfstate
-          key: terraform-state-${{ github.ref }}
-          restore-keys: |
-            terraform-state-
+  #     - name: Cache Terraform state
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: terraform/terraform.tfstate
+  #         key: terraform-state-${{ github.ref }}
+  #         restore-keys: |
+  #           terraform-state-
 
-      - name: Terraform Init
-        working-directory: ./terraform
-        run: terraform init
+  #     - name: Terraform Init
+  #       working-directory: ./terraform
+  #       run: terraform init
 
-      - name: Terraform Plan
-        working-directory: ./terraform
-        env:
-          TF_VAR_do_token: ${{ secrets.DO_ACCESS_TOKEN }}
-        run: terraform plan
+  #     - name: Terraform Plan
+  #       working-directory: ./terraform
+  #       env:
+  #         TF_VAR_do_token: ${{ secrets.DO_ACCESS_TOKEN }}
+  #       run: terraform plan
 
-      - name: Terraform Apply
-        id: terraform
-        working-directory: ./terraform
-        env:
-          TF_VAR_do_token: ${{ secrets.DO_ACCESS_TOKEN }}
-        run: |
-          terraform apply -auto-approve
-          echo "cluster_id=$(terraform output -raw cluster_id)" >> $GITHUB_OUTPUT
+  #     - name: Terraform Apply
+  #       id: terraform
+  #       working-directory: ./terraform
+  #       env:
+  #         TF_VAR_do_token: ${{ secrets.DO_ACCESS_TOKEN }}
+  #       run: |
+  #         terraform apply -auto-approve
+  #         echo "cluster_id=$(terraform output -raw cluster_id)" >> $GITHUB_OUTPUT
 
   build-and-push:
-    needs: provision-infrastructure
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.set_tag.outputs.image_tag }}
@@ -140,13 +139,9 @@ jobs:
       - name: Deploy with Helm
         run: |
           IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
-          if [ -z "${IMAGE_TAG}" ]; then
-            echo "Error: IMAGE_TAG is empty"
-            exit 1
-          fi
           echo "Deploying image: ${IMAGE_TAG}"
           helm upgrade --install giropops-senhas ${{ env.HELM_CHART_PATH }} \
-            --set "deployments.giropops-senhas.image=${IMAGE_TAG}" \
+            --set deployments.giropops-senhas.image="${IMAGE_TAG}" \
             --namespace giropops-senhas \
             --create-namespace \
             --wait \
