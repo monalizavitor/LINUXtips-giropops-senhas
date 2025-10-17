@@ -53,7 +53,7 @@ services:
         name: metrics
         serviceType: ClusterIP
     labels:
-      app: giropopsSenhas
+      app: giropops-senhas
       environment: development
   redis:
       ports:
@@ -64,4 +64,3 @@ services:
       labels:
         app: redis
         environment: development
-
