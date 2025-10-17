@@ -1,6 +1,6 @@
 deployments:
   giropops-senhas:
-    name: giropops-senhas-helm
+    name: giropops-senhas
     image: dissipar/giropops-senhas:sha-f9dd3c2
     replicas: 3
     ports:
