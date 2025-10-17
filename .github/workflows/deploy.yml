@@ -106,32 +106,34 @@ jobs:
       - name: Set image tag output
         id: set_tag
         run: |
-          # Use version output which is cleaner than parsing tags
-          VERSION="${{ steps.meta.outputs.version }}"
+          # Construct tag directly from GitHub SHA (first 7 chars)
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           DOCKER_IMAGE="${{ env.DOCKER_IMAGE }}"
+          IMAGE_TAG="${DOCKER_IMAGE}:sha-${SHORT_SHA}"
 
-          echo "=== Tag Extraction Debug ==="
-          echo "Version from metadata: ${VERSION}"
-          echo "Docker image: ${DOCKER_IMAGE}"
-          echo "Full tags: ${{ steps.meta.outputs.tags }}"
+          echo "=== Tag Information ==="
+          echo "GitHub SHA: ${{ github.sha }}"
+          echo "Short SHA: ${SHORT_SHA}"
+          echo "Docker Image: ${DOCKER_IMAGE}"
+          echo "Full Image Tag: ${IMAGE_TAG}"
 
-          # Construct full image tag
-          IMAGE_TAG="${DOCKER_IMAGE}:${VERSION}"
+          # Set output
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
-          echo "Final image tag: ${IMAGE_TAG}"
-
-          if [ -z "${VERSION}" ]; then
-            echo "ERROR: VERSION is empty!"
-            exit 1
-          fi
-
-          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          # Verify output was set
+          echo "Output file contents:"
+          cat "$GITHUB_OUTPUT" | grep "image_tag" || echo "WARNING: image_tag not found in output!"
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug job outputs
+        run: |
+          echo "=== Received from build-and-push job ==="
+          echo "image_tag output: '${{ needs.build-and-push.outputs.image_tag }}'"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
