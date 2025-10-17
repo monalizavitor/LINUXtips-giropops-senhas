@@ -106,18 +106,25 @@ jobs:
       - name: Set image tag output
         id: set_tag
         run: |
-          FULL_TAG="${{ steps.meta.outputs.tags }}"
-          echo "Full tags output: ${FULL_TAG}"
-          # Extract first tag and ensure it's not empty
-          IMAGE_TAG=$(echo "${FULL_TAG}" | grep -m1 "sha-" | tr -d '\n\r' || echo "")
-          if [ -z "${IMAGE_TAG}" ]; then
-            IMAGE_TAG=$(echo "${FULL_TAG}" | head -n1 | tr -d '\n\r')
-          fi
-          echo "Extracted tag: ${IMAGE_TAG}"
-          if [ -z "${IMAGE_TAG}" ]; then
-            echo "ERROR: Image tag is empty!"
+          # Use version output which is cleaner than parsing tags
+          VERSION="${{ steps.meta.outputs.version }}"
+          DOCKER_IMAGE="${{ env.DOCKER_IMAGE }}"
+
+          echo "=== Tag Extraction Debug ==="
+          echo "Version from metadata: ${VERSION}"
+          echo "Docker image: ${DOCKER_IMAGE}"
+          echo "Full tags: ${{ steps.meta.outputs.tags }}"
+
+          # Construct full image tag
+          IMAGE_TAG="${DOCKER_IMAGE}:${VERSION}"
+
+          echo "Final image tag: ${IMAGE_TAG}"
+
+          if [ -z "${VERSION}" ]; then
+            echo "ERROR: VERSION is empty!"
             exit 1
           fi
+
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
   deploy:
