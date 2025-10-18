@@ -1,18 +1,29 @@
+# =============================================================================
+# CI/CD Pipeline for Giropops Senhas Application
+# =============================================================================
+# This workflow automates the build, push, and deployment process to DigitalOcean Kubernetes
+#
+# Pipeline Flow:
+# 1. Build and Push Job: Builds Docker image and pushes to Docker Hub
+# 2. Deploy Job: Deploys the application to Kubernetes using Helm
+# =============================================================================
+
 name: Deploy to DigitalOcean Kubernetes
 
+# Trigger conditions: When code is pushed to main/release branches OR manually via workflow_dispatch
 on:
   push:
     branches:
-      - main
-      - release
-  workflow_dispatch:
+      - main      # Production branch
+      - release   # Release candidate branch
+  workflow_dispatch:  # Allows manual trigger from GitHub Actions UI
 
+# Global environment variables accessible to all jobs
 env:
-  DOCKER_IMAGE: dissipar/giropops-senhas
-  HELM_CHART_PATH: ./helm
-  CLUSTER_NAME: giropops-senhas-cluster
+  DOCKER_IMAGE: dissipar/giropops-senhas  # Docker Hub repository name
+  HELM_CHART_PATH: ./helm                  # Path to Helm chart directory
+  CLUSTER_NAME: giropops-senhas-cluster    # DigitalOcean Kubernetes cluster name
 
-# teste
 jobs:
   # provision-infrastructure:
   #   runs-on: ubuntu-latest
@@ -55,33 +66,46 @@ jobs:
   #         terraform apply -auto-approve
   #         echo "cluster_id=$(terraform output -raw cluster_id)" >> $GITHUB_OUTPUT
 
+  # ===========================================================================
+  # JOB 1: BUILD AND PUSH DOCKER IMAGE
+  # ===========================================================================
+  # Purpose: Build the application Docker image and push it to Docker Hub
+  # Duration: ~30-60 seconds
+  # ===========================================================================
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use latest Ubuntu runner provided by GitHub
     outputs:
-      image_tag: ${{ steps.set_tag.outputs.image_tag }}
+      image_tag: ${{ steps.set_tag.outputs.image_tag }}  # Output for other jobs (currently redacted by GitHub for security)
 
     steps:
+      # Step 1: Clone the repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Set up Docker Buildx (advanced Docker builder with caching support)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Step 3: Authenticate with Docker Hub using repository secrets
+      # Required secrets: DOCKER_USERNAME and DOCKER_PASSWORD (set in GitHub repo settings)
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Step 4: Generate Docker tags and labels automatically
+      # Creates tags like: dissipar/giropops-senhas:sha-abc1234, dissipar/giropops-senhas:release
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_IMAGE }}
           tags: |
-            type=sha
-            type=ref,event=branch
+            type=sha       # Creates tag based on git commit SHA (e.g., sha-abc1234)
+            type=ref,event=branch  # Creates tag based on branch name (e.g., main, release)
 
+      # Step 5: Debug output - shows what tags will be used (helpful for troubleshooting)
       - name: Debug metadata outputs
         run: |
           echo "=== Metadata Outputs ==="
@@ -93,16 +117,22 @@ jobs:
           echo "SHA: ${{ github.sha }}"
           echo "Docker Image: ${{ env.DOCKER_IMAGE }}"
 
+      # Step 6: Build the Docker image and push to Docker Hub
+      # Uses Dockerfile in repository root
+      # Includes GitHub Actions cache for faster builds
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          context: .                                    # Build context (root directory)
+          push: true                                    # Push to Docker Hub after build
+          tags: ${{ steps.meta.outputs.tags }}         # Apply tags from metadata action
+          labels: ${{ steps.meta.outputs.labels }}     # Apply labels from metadata action
+          cache-from: type=gha                          # Use GitHub Actions cache for faster builds
+          cache-to: type=gha,mode=max                   # Save cache for future builds
 
+      # Step 7: Create image tag for deployment
+      # Constructs tag format: dissipar/giropops-senhas:sha-abc1234
+      # Uses first 7 characters of git commit SHA for traceability
       - name: Set image tag output
         id: set_tag
         run: |
@@ -117,42 +147,63 @@ jobs:
           echo "Docker Image: ${DOCKER_IMAGE}"
           echo "Full Image Tag: ${IMAGE_TAG}"
 
-          # Set output
+          # Set output (Note: GitHub may redact this for security reasons)
           echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
           # Verify output was set
           echo "Output file contents:"
           cat "$GITHUB_OUTPUT" | grep "image_tag" || echo "WARNING: image_tag not found in output!"
 
+  # ===========================================================================
+  # JOB 2: DEPLOY TO KUBERNETES
+  # ===========================================================================
+  # Purpose: Deploy the Docker image to DigitalOcean Kubernetes using Helm
+  # Depends on: build-and-push job (must complete successfully first)
+  # Duration: ~20-40 seconds
+  # ===========================================================================
   deploy:
-    needs: build-and-push
+    needs: build-and-push  # This job only runs if build-and-push succeeds
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Debug - show what image tag was received from previous job
+      # Note: This will be empty due to GitHub secret redaction, but kept for debugging
       - name: Debug job outputs
         run: |
           echo "=== Received from build-and-push job ==="
           echo "image_tag output: '${{ needs.build-and-push.outputs.image_tag }}'"
 
+      # Step 2: Clone repository to access Helm charts
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 3: Install DigitalOcean CLI (doctl) to interact with DO Kubernetes
+      # Required secret: DO_ACCESS_TOKEN (DigitalOcean API token)
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_ACCESS_TOKEN }}
 
+      # Step 4: Download Kubernetes cluster configuration
+      # Saves kubeconfig file to ~/.kube/config so kubectl can access the cluster
       - name: Save kubeconfig
         run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER_NAME }}
 
+      # Step 5: Install Helm 3 (Kubernetes package manager)
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
           version: 'latest'
 
+      # Step 6: Create Kubernetes secret for pulling images from Docker Hub
+      # This allows Kubernetes to pull private images from your Docker Hub account
+      # Uses --dry-run to avoid errors if namespace/secret already exists
       - name: Create Docker registry secret
         run: |
+          # Create namespace if it doesn't exist
           kubectl create namespace giropops-senhas --dry-run=client -o yaml | kubectl apply -f -
+
+          # Create Docker Hub credentials secret
           kubectl create secret docker-registry dockerhub-secret \
             --docker-server=https://index.docker.io/v1/ \
             --docker-username=${{ secrets.DOCKER_USERNAME }} \
@@ -160,14 +211,23 @@ jobs:
             --namespace=giropops-senhas \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      # Step 7: Deploy application using Helm
+      # This is the main deployment step that updates your application in Kubernetes
       - name: Deploy with Helm
         run: |
-          # Construct image tag directly (same as build job)
+          # Reconstruct image tag (same logic as build job)
+          # Why reconstruct? GitHub Actions redacts the output from previous job for security
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           IMAGE_TAG="${{ env.DOCKER_IMAGE }}:sha-${SHORT_SHA}"
 
           echo "Deploying image: ${IMAGE_TAG}"
 
+          # helm upgrade --install: Creates or updates the release
+          # --set: Overrides values.yaml with the specific image tag
+          # --namespace: Deploy to giropops-senhas namespace
+          # --create-namespace: Create namespace if it doesn't exist
+          # --wait: Wait for all resources to be ready before marking as successful
+          # --timeout: Maximum time to wait for deployment (5 minutes)
           helm upgrade --install giropops-senhas ${{ env.HELM_CHART_PATH }} \
             --set deployments.giropops-senhas.image="${IMAGE_TAG}" \
             --namespace giropops-senhas \
@@ -175,6 +235,8 @@ jobs:
             --wait \
             --timeout 5m
 
+      # Step 8: Verify deployment succeeded
+      # Shows running pods and services for verification
       - name: Verify deployment
         run: |
           kubectl get pods -n giropops-senhas
