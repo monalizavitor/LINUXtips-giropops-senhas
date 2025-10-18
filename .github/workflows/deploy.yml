@@ -162,14 +162,11 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
-          echo "Deploying image: ${IMAGE_TAG}"
+          # Construct image tag directly (same as build job)
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          IMAGE_TAG="${{ env.DOCKER_IMAGE }}:sha-${SHORT_SHA}"
 
-          # Validate image tag is not empty
-          if [ -z "${IMAGE_TAG}" ]; then
-            echo "ERROR: IMAGE_TAG is empty! Cannot deploy without a valid image tag."
-            exit 1
-          fi
+          echo "Deploying image: ${IMAGE_TAG}"
 
           helm upgrade --install giropops-senhas ${{ env.HELM_CHART_PATH }} \
             --set deployments.giropops-senhas.image="${IMAGE_TAG}" \
